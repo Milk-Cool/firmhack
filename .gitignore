@@ -1,0 +1,21 @@
+# Python-related stuff
+venv/
+__pycache__/
+.idea/
+
+# Main config file
+firmhack.json
+
+# Log files
+firmhack.log
+proxy.log
+
+# Files
+files/*
+!files/.gitkeep
+
+# Temporary hostapd-mana config file
+hostapd.conf
+
+# Temporary proxychains config file
+proxychains.conf

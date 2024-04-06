@@ -1,0 +1,32 @@
+{
+    "__comment": "Format of comments: param = description : accepted_value_1 | acccepted_value_2",
+    "general": {
+        "__comment": "hostapdmanacmd = path to hostapd-mana executable, or command name if in path : path | name; proxychainscmd = path to or name of proxychains executable : path | name; nm = whether to disable NetworkManager and enable it back after hostapd-mana has stopped : true | false",
+        "hostapdmanacmd": "hostapd-mana",
+        "proxychainscmd": "proxychains",
+        "nm": true
+    },
+    "ap": {
+        "__comment": "interface = interface name : name; loud = advertise to all devices : true | false; type = type of AP (enterprise unsupported for now) : normal | enterprise; name = AP name; password = network password if using personal : password",
+        "interface": "wlan0",
+        "loud": true,
+        "type": "normal",
+        "name": "My WiFi",
+        "password": "mypasswd"
+    },
+    "proxy": {
+        "__comment": "logfile = file to log requests to : none | path; burp = use Burp Suite as proxy : 0 for no | proxy port",
+        "logfile": "proxy.log",
+        "burp": 0
+    },
+    "addresses": [
+        {
+            "__comment": "address = http(s) address to serve the file for : http[s]://youraddress/yourpath; file = path to file to serve : path; headers = the headers object : object with headers",
+            "address": "http://firmhack",
+            "file": "example/browser-detect.html",
+            "headers": {
+                "Content-Type": "text/html"
+            }
+        }
+    ]
+}
