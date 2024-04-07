@@ -1,6 +1,6 @@
 # Requirements
 
-[`hostapd-mana`](https://github.com/sensepost/hostapd-mana), [Python 3](https://www.python.org/), [dnsmasq](https://wiki.debian.org/dnsmasq)
+[`hostapd-mana`](https://github.com/sensepost/hostapd-mana), [Python 3](https://www.python.org/), [dnsmasq](https://wiki.debian.org/dnsmasq), `requirements.txt` packages
 
 # Config explanation in detial
 The config is a JSON file called `firmhack.json`.
@@ -10,6 +10,8 @@ General settings.
 Command used to invoke hostapd-mana. Either the path to your `hostapd-mana` file or the command name if it's already in PATH.
 ### `dnsmasqcmd`
 Command used to invoke dnsmasq. It's usually in PATH, so the recommended value is `dnsmasq`.
+### `mitmdumpcmd`
+Command used to invoke mitmdump. It's usually in PATH, so the recommended value is `mitmdump`.
 ### `nm`
 Whether to disable NetworkManager while `hostapd-mana` is running.\
 If you use this setting, you should only press ^C **ONLY ONCE** when stopping hostapd-mana.
@@ -38,7 +40,7 @@ If you're using Burp Suite as a proxy, set this to the proxy port (`8080` by def
 ## `addresses`
 A set of adresses settings. (JSON array, see `firmhack.example.json`)
 ### `address`
-The address to intercept. The actual address might have an extra slash at the end, and the proxy checks wheter `req_address == address or req_address == address + "/"`, so DO NOT put a trailing slash! (might be fixed in the future)
+The address to intercept.
 ### `file`
 The path of the file to serve.
 ### `headers`

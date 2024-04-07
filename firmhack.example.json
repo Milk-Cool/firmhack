@@ -1,9 +1,10 @@
 {
     "__comment": "Format of comments: param = description : accepted_value_1 | acccepted_value_2",
     "general": {
-        "__comment": "hostapdmanacmd = path to hostapd-mana executable, or command name if in path : path | name; nm = whether to disable NetworkManager and enable it back after hostapd-mana has stopped : true | false; dnsmasqcmd = path or name of the dnsmasq executable : path | name; inetinterface = name of the interface to use for internet : name | empty string if unused",
+        "__comment": "hostapdmanacmd = path to hostapd-mana executable, or command name if in path : path | name; mitmdumpcmd = path to mitmdump executable, or command name if in path : path | name; nm = whether to disable NetworkManager and enable it back after hostapd-mana has stopped : true | false; dnsmasqcmd = path or name of the dnsmasq executable : path | name; inetinterface = name of the interface to use for internet : name | empty string if unused",
         "hostapdmanacmd": "hostapd-mana",
         "dnsmasqcmd": "dnsmasq",
+        "mitmdumpcmd": "mitmdump",
         "nm": false,
         "inetinterface": ""
     },
@@ -23,7 +24,7 @@
     "addresses": [
         {
             "__comment": "address = http(s) address to serve the file for : http[s]://youraddress/yourpath; file = path to file to serve : path; headers = the headers object : object with headers",
-            "address": "http://firmhack",
+            "address": "http://example.com",
             "file": "example/browser-detect.html",
             "headers": {
                 "Content-Type": "text/html"

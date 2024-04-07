@@ -1,8 +1,6 @@
 import json
 import subprocess
 import logging
-import time
-import os
 
 
 logger = logging.getLogger(__name__)
@@ -16,6 +14,7 @@ class HostapdManaNetworkType:
 class GeneralConfig:
     hostapdmanacmd: str = "hostapd-mana"
     dnsmasqcmd: str = "dnsmasq"
+    mitmdumpcmd: str = "mitmdump"
     nm: bool = True
     inetinterface: str = ""
 
@@ -43,7 +42,7 @@ class Config:
     general: GeneralConfig = GeneralConfig()
     ap: APConfig = APConfig()
     proxy: ProxyConfig = ProxyConfig()
-    addresses: AddressConfig = [AddressConfig()]
+    addresses: list[AddressConfig] = [AddressConfig()]
 
 
 def get_hostapd_mana_type(type: str) -> HostapdManaNetworkType:
@@ -87,6 +86,7 @@ def dict_to_obj_config(dict_config: dict) -> Config:
     general_config = GeneralConfig()
     general_config.hostapdmanacmd = dict_config["general"]["hostapdmanacmd"]
     general_config.dnsmasqcmd = dict_config["general"]["dnsmasqcmd"]
+    general_config.mitmdumpcmd = dict_config["general"]["mitmdumpcmd"]
     general_config.nm = dict_config["general"]["nm"]
     general_config.inetinterface = dict_config["general"]["inetinterface"]
 
@@ -154,8 +154,12 @@ def main() -> None:
     if config.general.nm:
         logger.info("Disabling NetworkManager...")
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "off"])
+        reset_console()
     # logger.info("Disabling interface...")
     # subprocess.run(["sudo", "ifconfig", config.ap.interface, "up"])
+    logger.info("Starting mitmdump...")
+    mitmdump = subprocess.Popen([config.general.mitmdumpcmd, "-s", "proxy.py"])
+    reset_console()
     logger.info("Setting things up before starting the AP...")
     subprocess.Popen(["sudo", "killall", "dnsmasq"]).wait()
     dnsmasq = subprocess.Popen(
@@ -182,6 +186,7 @@ def main() -> None:
     if config.general.inetinterface:
         subprocess.run(["sudo", "iptables", "-F"])
     dnsmasq.terminate()
+    mitmdump.terminate()
     if config.general.nm:
         logger.info("hostapd-mana has stopped. Enabling NetworkManager...")
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "on"])
