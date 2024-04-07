@@ -158,7 +158,10 @@ def main() -> None:
     # logger.info("Disabling interface...")
     # subprocess.run(["sudo", "ifconfig", config.ap.interface, "up"])
     logger.info("Starting mitmdump...")
-    mitmdump = subprocess.Popen([config.general.mitmdumpcmd, "-s", "proxy.py"])
+    mitmdump = None
+    if not config.proxy.burp:
+        mitmdump = subprocess.Popen(
+            [config.general.mitmdumpcmd, "-s", "proxy.py", "-p", "1337"])
     reset_console()
     logger.info("Setting things up before starting the AP...")
     subprocess.Popen(["sudo", "killall", "dnsmasq"]).wait()
@@ -173,6 +176,10 @@ def main() -> None:
                        config.ap.interface, "-o", config.general.inetinterface, "-j", "ACCEPT"])
         subprocess.run(["sudo", "iptables", "-A", "FORWARD", "-i", config.general.inetinterface, "-o",
                        config.ap.interface, "-m", "state", "--state", "RELATED,ESTABLISHED", "-j", "ACCEPT"])
+        subprocess.run(["sudo", "iptables", "-t", "nat", "-A", "PREROUTING", "-i", config.ap.interface,
+                       "-p", "tcp", "-m", "tcp", "--dport", "80", "-j", "REDIRECT", "--to-ports", str(config.proxy.burp) if config.proxy.burp else "1337"])
+        subprocess.run(["sudo", "iptables", "-t", "nat", "-A", "PREROUTING", "-i", config.ap.interface,
+                       "-p", "tcp", "-m", "tcp", "--dport", "443", "-j", "REDIRECT", "--to-ports", str(config.proxy.burp) if config.proxy.burp else "1337"])
     reset_console()
     logger.info("Starting hostapd-mana...")
     hostapd = subprocess.Popen(
@@ -186,7 +193,8 @@ def main() -> None:
     if config.general.inetinterface:
         subprocess.run(["sudo", "iptables", "-F"])
     dnsmasq.terminate()
-    mitmdump.terminate()
+    if mitmdump is not None:
+        mitmdump.terminate()
     if config.general.nm:
         logger.info("hostapd-mana has stopped. Enabling NetworkManager...")
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "on"])
