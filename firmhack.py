@@ -15,7 +15,6 @@ class HostapdManaNetworkType:
 
 class GeneralConfig:
     hostapdmanacmd: str = "hostapd-mana"
-    proxychainscmd: str = "proxychains"
     dnsmasqcmd: str = "dnsmasq"
     nm: bool = True
     inetinterface: str = ""
@@ -87,7 +86,6 @@ def get_config() -> dict:
 def dict_to_obj_config(dict_config: dict) -> Config:
     general_config = GeneralConfig()
     general_config.hostapdmanacmd = dict_config["general"]["hostapdmanacmd"]
-    general_config.proxychainscmd = dict_config["general"]["proxychainscmd"]
     general_config.dnsmasqcmd = dict_config["general"]["dnsmasqcmd"]
     general_config.nm = dict_config["general"]["nm"]
     general_config.inetinterface = dict_config["general"]["inetinterface"]
@@ -117,11 +115,6 @@ def dict_to_obj_config(dict_config: dict) -> Config:
     config.proxy = proxy_config
     config.addresses = addresses_config
     return config
-
-
-def form_proxychains_config(port: int | str) -> str:
-    return f"""[ProxyList]
-http 127.0.0.1 {port}"""
 
 
 def form_dnsmasq_config(interface: str) -> str:
@@ -158,13 +151,6 @@ def main() -> None:
     logger.info("Saved dnsmasq config!")
     if config.proxy.burp == 0:
         pass  # TODO: start proxy
-    proxychains_config = form_proxychains_config(
-        1337 if config.proxy.burp == 0 else config.proxy.burp)
-    logger.info("Generated proxychains config!")
-    proxychains_config_f = open("proxychains.conf", "w")
-    proxychains_config_f.write(proxychains_config)
-    proxychains_config_f.close()
-    logger.info("Saved proxychains config!")
     if config.general.nm:
         logger.info("Disabling NetworkManager...")
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "off"])
@@ -184,14 +170,17 @@ def main() -> None:
         subprocess.run(["sudo", "iptables", "-A", "FORWARD", "-i", config.general.inetinterface, "-o",
                        config.ap.interface, "-m", "state", "--state", "RELATED,ESTABLISHED", "-j", "ACCEPT"])
     reset_console()
-    logger.info("Starting hostapd-mana with proxychains...")
-    proxychains_and_hostapd = subprocess.Popen(
-        ["sudo", config.general.proxychainscmd, "-f", "proxychains.conf", config.general.hostapdmanacmd, "hostapd.conf"])
+    logger.info("Starting hostapd-mana...")
+    hostapd = subprocess.Popen(
+        ["sudo", config.general.hostapdmanacmd, "hostapd.conf"])
     reset_console()
     try:
-        proxychains_and_hostapd.wait()
+        hostapd.wait()
     except KeyboardInterrupt:
         pass
+    logger.info("Shutting down...")
+    if config.general.inetinterface:
+        subprocess.run(["sudo", "iptables", "-F"])
     dnsmasq.terminate()
     if config.general.nm:
         logger.info("hostapd-mana has stopped. Enabling NetworkManager...")

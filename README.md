@@ -1,6 +1,6 @@
 # Requirements
 
-[`hostapd-mana`](https://github.com/sensepost/hostapd-mana), [`proxychains`](https://github.com/haad/proxychains) (or [`proxychains4`](https://github.com/rofl0r/proxychains-ng)), [Python 3](https://www.python.org/)
+[`hostapd-mana`](https://github.com/sensepost/hostapd-mana), [Python 3](https://www.python.org/), [dnsmasq](https://wiki.debian.org/dnsmasq)
 
 # Config explanation in detial
 The config is a JSON file called `firmhack.json`.
@@ -8,8 +8,6 @@ The config is a JSON file called `firmhack.json`.
 General settings.
 ### `hostapdmanacmd`
 Command used to invoke hostapd-mana. Either the path to your `hostapd-mana` file or the command name if it's already in PATH.
-### `proxychainscmd`
-Command used to invoke proxychains. It's usually in PATH, so recommended values are `proxychains` and `proxychains4`.
 ### `dnsmasqcmd`
 Command used to invoke dnsmasq. It's usually in PATH, so the recommended value is `dnsmasq`.
 ### `nm`
