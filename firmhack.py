@@ -2,6 +2,7 @@ import json
 import subprocess
 import logging
 import time
+import os
 
 
 logger = logging.getLogger(__name__)
@@ -15,8 +16,9 @@ class HostapdManaNetworkType:
 class GeneralConfig:
     hostapdmanacmd: str = "hostapd-mana"
     proxychainscmd: str = "proxychains"
-    dhcpcdcmd: str = "dhcpcd"
+    dnsmasqcmd: str = "dnsmasq"
     nm: bool = True
+    inetinterface: str = ""
 
 
 class APConfig:
@@ -68,6 +70,9 @@ wpa_key_mgmt=WPA-PSK
 wpa_pairwise=TKIP
 rsn_pairwise=CCMP
 wpa_passphrase={password}
+auth_algs=3
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP CCMP
 """
     return config
 
@@ -83,8 +88,9 @@ def dict_to_obj_config(dict_config: dict) -> Config:
     general_config = GeneralConfig()
     general_config.hostapdmanacmd = dict_config["general"]["hostapdmanacmd"]
     general_config.proxychainscmd = dict_config["general"]["proxychainscmd"]
-    general_config.dhcpcdcmd = dict_config["general"]["dhcpcdcmd"]
+    general_config.dnsmasqcmd = dict_config["general"]["dnsmasqcmd"]
     general_config.nm = dict_config["general"]["nm"]
+    general_config.inetinterface = dict_config["general"]["inetinterface"]
 
     ap_config = APConfig()
     ap_config.interface = dict_config["ap"]["interface"]
@@ -118,27 +124,17 @@ def form_proxychains_config(port: int | str) -> str:
 http 127.0.0.1 {port}"""
 
 
-def form_dhcpcd_config(interface: str) -> str:
-    #return f"""interface {interface}
-#static ip_address=192.168.42.10/24	
-#static routers=192.168.42.1
-#static domain_name_servers=192.168.42.1 8.8.8.8"""
-#     return f"""hostname
-# clientid
-# persistent
-# option rapid_commit
-# option domain_name_servers, domain_name, domain_search, host_name
-# option classless_static_routes
-# option interface_mtu
-# require dhcp_server_identifier
-# slaac private
-# interface {interface}
-# 	static ip_address=192.168.42.1/24
-# 	nohook wpa_supplicant"""
-    return f"""interface {interface}
-nohook wpa_supplicant
-static ip_address=192.168.4.1/24
-static routers=192.168.4.1"""
+def form_dnsmasq_config(interface: str) -> str:
+    return f"""interface={interface}
+bind-interfaces
+dhcp-range=10.0.0.10,10.0.0.250,12h
+dhcp-option=3,10.0.0.1
+dhcp-option=6,10.0.0.1
+listen-address=127.0.0.1"""
+
+
+def reset_console() -> None:
+    subprocess.run(["stty", "sane"])
 
 
 def main() -> None:
@@ -154,12 +150,12 @@ def main() -> None:
     hostapd_mana_config_f.write(hostapd_mana_config)
     hostapd_mana_config_f.close()
     logger.info("Saved hostapd-mana config!")
-    dhcpcd_config = form_dhcpcd_config(config.ap.interface)
-    logger.info("Generated dhcpcd config!")
-    dhcpcd_config_f = open("dhcpcd.conf", "w")
-    dhcpcd_config_f.write(dhcpcd_config)
-    dhcpcd_config_f.close()
-    logger.info("Saved dhcpcd config!")
+    dnsmasq_config = form_dnsmasq_config(config.ap.interface)
+    logger.info("Generated dnsmasq config!")
+    dnsmasq_config_f = open("dnsmasq.conf", "w")
+    dnsmasq_config_f.write(dnsmasq_config)
+    dnsmasq_config_f.close()
+    logger.info("Saved dnsmasq config!")
     if config.proxy.burp == 0:
         pass  # TODO: start proxy
     proxychains_config = form_proxychains_config(
@@ -172,23 +168,29 @@ def main() -> None:
     if config.general.nm:
         logger.info("Disabling NetworkManager...")
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "off"])
-    logger.info("Disabling interface...")
-    subprocess.run(["sudo", "ifconfig", config.ap.interface, "down"])
-    logger.info("Starting dhcpcd...")
-    subprocess.run(["sudo", config.general.dhcpcdcmd, "-f", "dhcpcd.conf"])
-    time.sleep(0.1)
-    subprocess.run(["sudo", "service", "dhcpcd", "restart"])
+    # logger.info("Disabling interface...")
+    # subprocess.run(["sudo", "ifconfig", config.ap.interface, "down"])
+    logger.info("Setting things up before starting the AP...")
+    dnsmasq = subprocess.Popen(["sudo", config.general.dnsmasqcmd, "-C", "dnsmasq.conf", "-d"])
+    subprocess.run(["sudo", "ifconfig", config.ap.interface, "10.0.0.1", "netmask", "255.255.255.0", "up"])
+    if config.general.inetinterface:
+        subprocess.run(["sudo", "iptables", "-t", "nat", "-A", "POSTROUTING", "-o", config.general.inetinterface, "-j", "MASQUERADE"])
+        subprocess.run(["sudo", "iptables", "-A", "FORWARD", "-i", config.ap.interface, "-o", config.general.inetinterface, "-j", "ACCEPT"])
+        subprocess.run(["sudo", "iptables", "-A", "FORWARD", "-i", config.general.inetinterface, "-o", config.ap.interface, "-m", "state", "--state", "RELATED,ESTABLISHED", "-j", "ACCEPT"])
+    reset_console()
     logger.info("Starting hostapd-mana with proxychains...")
     proxychains_and_hostapd = subprocess.Popen(
         ["sudo", config.general.proxychainscmd, "-f", "proxychains.conf", config.general.hostapdmanacmd, "hostapd.conf"])
+    reset_console()
     try:
         proxychains_and_hostapd.wait()
     except KeyboardInterrupt:
         pass
+    dnsmasq.terminate()
     if config.general.nm:
         logger.info("hostapd-mana has stopped. Enabling NetworkManager...")
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "on"])
-    subprocess.run(["stty", "sane"])
+    reset_console()
 
 
 if __name__ == "__main__":

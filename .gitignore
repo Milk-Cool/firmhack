@@ -20,5 +20,5 @@ hostapd.conf
 # Temporary proxychains config file
 proxychains.conf
 
-# Temporary dhcpcd config file
-dhcpcd.conf
+# Temporary dnsmasq config file
+dnsmasq.conf

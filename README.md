@@ -10,11 +10,15 @@ General settings.
 Command used to invoke hostapd-mana. Either the path to your `hostapd-mana` file or the command name if it's already in PATH.
 ### `proxychainscmd`
 Command used to invoke proxychains. It's usually in PATH, so recommended values are `proxychains` and `proxychains4`.
-### `dhcpcdcmd`
-Command used to invoke dhcpcd. It's usually in PATH, so the recommended value is `dhcpcd`.
+### `dnsmasqcmd`
+Command used to invoke dnsmasq. It's usually in PATH, so the recommended value is `dnsmasq`.
 ### `nm`
 Whether to disable NetworkManager while `hostapd-mana` is running.\
 If you use this setting, you should only press ^C **ONLY ONCE** when stopping hostapd-mana.
+### `inetinterface`
+The interface to use to access internet from the connected devices.\
+Usually something like `wlan0` or `wlp1s0`.\
+Leave this blank if no internet is required.
 ## `ap`
 Access point settings.
 ### `interface`
