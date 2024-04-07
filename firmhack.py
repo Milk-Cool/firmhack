@@ -157,9 +157,9 @@ def main() -> None:
         reset_console()
     # logger.info("Disabling interface...")
     # subprocess.run(["sudo", "ifconfig", config.ap.interface, "up"])
-    logger.info("Starting mitmdump...")
     mitmdump = None
     if not config.proxy.burp:
+        logger.info("Starting mitmdump...")
         mitmdump = subprocess.Popen(
             [config.general.mitmdumpcmd, "-s", "proxy.py", "-p", "1337"])
     reset_console()
