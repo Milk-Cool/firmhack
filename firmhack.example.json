@@ -1,10 +1,11 @@
 {
     "__comment": "Format of comments: param = description : accepted_value_1 | acccepted_value_2",
     "general": {
-        "__comment": "hostapdmanacmd = path to hostapd-mana executable, or command name if in path : path | name; proxychainscmd = path to or name of proxychains executable : path | name; nm = whether to disable NetworkManager and enable it back after hostapd-mana has stopped : true | false",
+        "__comment": "hostapdmanacmd = path to hostapd-mana executable, or command name if in path : path | name; proxychainscmd = path to or name of proxychains executable : path | name; nm = whether to disable NetworkManager and enable it back after hostapd-mana has stopped : true | false; dhcpcdcmd = path or name of the dhcpcd executable : path | name",
         "hostapdmanacmd": "hostapd-mana",
         "proxychainscmd": "proxychains",
-        "nm": true
+        "dhcpcdcmd": "dhcpcd",
+        "nm": false
     },
     "ap": {
         "__comment": "interface = interface name : name; loud = advertise to all devices : true | false; type = type of AP (enterprise unsupported for now) : normal | enterprise; name = AP name; password = network password if using personal : password",

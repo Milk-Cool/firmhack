@@ -1,6 +1,7 @@
 import json
 import subprocess
 import logging
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,7 @@ class HostapdManaNetworkType:
 class GeneralConfig:
     hostapdmanacmd: str = "hostapd-mana"
     proxychainscmd: str = "proxychains"
+    dhcpcdcmd: str = "dhcpcd"
     nm: bool = True
 
 
@@ -53,15 +55,13 @@ interface={interace}
 ssid={name}
 channel=6
 hw_mode=g
-enable_mana=1
-mana_loud={"1" if loud else "0"}
 """
     if type == HostapdManaNetworkType.ENTERPRISE:
         # TODO: enterprise networks support
         config += f"""enable_sycophant=1
 sycophant_dir=/tmp/
 """
-    if password:
+    if password and type != HostapdManaNetworkType.ENTERPRISE:
         config += f"""ieee80211n=1
 wpa=2
 wpa_key_mgmt=WPA-PSK
@@ -83,6 +83,7 @@ def dict_to_obj_config(dict_config: dict) -> Config:
     general_config = GeneralConfig()
     general_config.hostapdmanacmd = dict_config["general"]["hostapdmanacmd"]
     general_config.proxychainscmd = dict_config["general"]["proxychainscmd"]
+    general_config.dhcpcdcmd = dict_config["general"]["dhcpcdcmd"]
     general_config.nm = dict_config["general"]["nm"]
 
     ap_config = APConfig()
@@ -117,6 +118,29 @@ def form_proxychains_config(port: int | str) -> str:
 http 127.0.0.1 {port}"""
 
 
+def form_dhcpcd_config(interface: str) -> str:
+    #return f"""interface {interface}
+#static ip_address=192.168.42.10/24	
+#static routers=192.168.42.1
+#static domain_name_servers=192.168.42.1 8.8.8.8"""
+#     return f"""hostname
+# clientid
+# persistent
+# option rapid_commit
+# option domain_name_servers, domain_name, domain_search, host_name
+# option classless_static_routes
+# option interface_mtu
+# require dhcp_server_identifier
+# slaac private
+# interface {interface}
+# 	static ip_address=192.168.42.1/24
+# 	nohook wpa_supplicant"""
+    return f"""interface {interface}
+nohook wpa_supplicant
+static ip_address=192.168.4.1/24
+static routers=192.168.4.1"""
+
+
 def main() -> None:
     logging.basicConfig(filename="firmhack.log",
                         level=logging.INFO, filemode="w")
@@ -130,6 +154,12 @@ def main() -> None:
     hostapd_mana_config_f.write(hostapd_mana_config)
     hostapd_mana_config_f.close()
     logger.info("Saved hostapd-mana config!")
+    dhcpcd_config = form_dhcpcd_config(config.ap.interface)
+    logger.info("Generated dhcpcd config!")
+    dhcpcd_config_f = open("dhcpcd.conf", "w")
+    dhcpcd_config_f.write(dhcpcd_config)
+    dhcpcd_config_f.close()
+    logger.info("Saved dhcpcd config!")
     if config.proxy.burp == 0:
         pass  # TODO: start proxy
     proxychains_config = form_proxychains_config(
@@ -141,14 +171,24 @@ def main() -> None:
     logger.info("Saved proxychains config!")
     if config.general.nm:
         logger.info("Disabling NetworkManager...")
-        subprocess.run(["sudo", "service", "NetworkManager", "stop"])
+        subprocess.run(["sudo", "nmcli", "radio", "wifi", "off"])
+    logger.info("Disabling interface...")
+    subprocess.run(["sudo", "ifconfig", config.ap.interface, "down"])
+    logger.info("Starting dhcpcd...")
+    subprocess.run(["sudo", config.general.dhcpcdcmd, "-f", "dhcpcd.conf"])
+    time.sleep(0.1)
+    subprocess.run(["sudo", "service", "dhcpcd", "restart"])
     logger.info("Starting hostapd-mana with proxychains...")
     proxychains_and_hostapd = subprocess.Popen(
         ["sudo", config.general.proxychainscmd, "-f", "proxychains.conf", config.general.hostapdmanacmd, "hostapd.conf"])
-    proxychains_and_hostapd.wait()
+    try:
+        proxychains_and_hostapd.wait()
+    except KeyboardInterrupt:
+        pass
     if config.general.nm:
         logger.info("hostapd-mana has stopped. Enabling NetworkManager...")
-        subprocess.run(["sudo", "service", "NetworkManager", "start"])
+        subprocess.run(["sudo", "nmcli", "radio", "wifi", "on"])
+    subprocess.run(["stty", "sane"])
 
 
 if __name__ == "__main__":
