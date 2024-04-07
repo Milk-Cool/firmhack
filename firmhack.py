@@ -169,8 +169,9 @@ def main() -> None:
         logger.info("Disabling NetworkManager...")
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "off"])
     # logger.info("Disabling interface...")
-    # subprocess.run(["sudo", "ifconfig", config.ap.interface, "down"])
+    # subprocess.run(["sudo", "ifconfig", config.ap.interface, "up"])
     logger.info("Setting things up before starting the AP...")
+    subprocess.Popen(["sudo", "killall", "dnsmasq"]).wait()
     dnsmasq = subprocess.Popen(
         ["sudo", config.general.dnsmasqcmd, "-C", "dnsmasq.conf", "-d"])
     subprocess.run(["sudo", "ifconfig", config.ap.interface,
