@@ -171,12 +171,17 @@ def main() -> None:
     # logger.info("Disabling interface...")
     # subprocess.run(["sudo", "ifconfig", config.ap.interface, "down"])
     logger.info("Setting things up before starting the AP...")
-    dnsmasq = subprocess.Popen(["sudo", config.general.dnsmasqcmd, "-C", "dnsmasq.conf", "-d"])
-    subprocess.run(["sudo", "ifconfig", config.ap.interface, "10.0.0.1", "netmask", "255.255.255.0", "up"])
+    dnsmasq = subprocess.Popen(
+        ["sudo", config.general.dnsmasqcmd, "-C", "dnsmasq.conf", "-d"])
+    subprocess.run(["sudo", "ifconfig", config.ap.interface,
+                   "10.0.0.1", "netmask", "255.255.255.0", "up"])
     if config.general.inetinterface:
-        subprocess.run(["sudo", "iptables", "-t", "nat", "-A", "POSTROUTING", "-o", config.general.inetinterface, "-j", "MASQUERADE"])
-        subprocess.run(["sudo", "iptables", "-A", "FORWARD", "-i", config.ap.interface, "-o", config.general.inetinterface, "-j", "ACCEPT"])
-        subprocess.run(["sudo", "iptables", "-A", "FORWARD", "-i", config.general.inetinterface, "-o", config.ap.interface, "-m", "state", "--state", "RELATED,ESTABLISHED", "-j", "ACCEPT"])
+        subprocess.run(["sudo", "iptables", "-t", "nat", "-A", "POSTROUTING",
+                       "-o", config.general.inetinterface, "-j", "MASQUERADE"])
+        subprocess.run(["sudo", "iptables", "-A", "FORWARD", "-i",
+                       config.ap.interface, "-o", config.general.inetinterface, "-j", "ACCEPT"])
+        subprocess.run(["sudo", "iptables", "-A", "FORWARD", "-i", config.general.inetinterface, "-o",
+                       config.ap.interface, "-m", "state", "--state", "RELATED,ESTABLISHED", "-j", "ACCEPT"])
     reset_console()
     logger.info("Starting hostapd-mana with proxychains...")
     proxychains_and_hostapd = subprocess.Popen(
