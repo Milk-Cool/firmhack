@@ -14,8 +14,16 @@ proxy.log
 files/*
 !files/.gitkeep
 
-# Temporary hostapd-mana config file
+# Temporary hostapd-mana config files
 hostapd.conf
+firmhack.eap_user
+
+# Keys and certificates
+server.key
+csr.csr
+server.pem
+dhparam.pem
+ca.pem
 
 # Temporary proxychains config file
 proxychains.conf

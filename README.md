@@ -26,7 +26,7 @@ The network interface to use with hostapd-mana. Usually something like `wlan0` o
 ### `loud`
 Determines whether hostapd-mana should advertize the network to all devices rather than just those that are seeking for the network.
 ### `type`
-`normal` for WPA/WPA2-Personal networks and `enterprise` for WPA2-Enterprise networks. Set this to `enterprise` if your network requires both a username and a password.
+`normal` for WPA/WPA2-Personal networks and `enterprise` for WPA2-Enterprise networks. ~~Set this to `enterprise` if your network requires both a username and a password.~~ Enterprise networks unsupported for now.
 ### `password`
 The WiFi password for `normal` networks. Unused with `enterprise` networks.
 ### `name`
@@ -38,7 +38,7 @@ The name of the file to log intercepted request paths to. Unused if `burp` is se
 ### `burp`
 If you're using Burp Suite as a proxy, set this to the proxy port (`8080` by default iirc). This should also work with other custom proxies. If you're using the firmhack proxy, leave this set to `0`.
 ### `hosts`
-Ignored hosts regex, like `^(?!example\\.com:)`. See mitmproxy's [`--ignore-hosts`](https://docs.mitmproxy.org/stable/howto-ignoredomains/) option.
+Ignored hosts regex, like `^(?!example\\.com:)` or `^(?!.*)` to intercept all hosts. See mitmproxy's [`--ignore-hosts`](https://docs.mitmproxy.org/stable/howto-ignoredomains/) option.
 ## `addresses`
 A set of adresses settings. (JSON array, see `firmhack.example.json`)
 ### `address`
