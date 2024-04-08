@@ -151,14 +151,10 @@ def main() -> None:
     dnsmasq_config_f.write(dnsmasq_config)
     dnsmasq_config_f.close()
     logger.info("Saved dnsmasq config!")
-    if config.proxy.burp == 0:
-        pass  # TODO: start proxy
     if config.general.nm:
         logger.info("Disabling NetworkManager...")
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "off"])
         reset_console()
-    # logger.info("Disabling interface...")
-    # subprocess.run(["sudo", "ifconfig", config.ap.interface, "up"])
     mitmdump = None
     if not config.proxy.burp:
         logger.info("Starting mitmdump...")
