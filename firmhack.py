@@ -30,10 +30,11 @@ class APConfig:
 class ProxyConfig:
     logfile: str = "firmhack.log"
     burp: int = 0
+    hosts: str = "^(?!example\\.com:)"
 
 
 class AddressConfig:
-    address: str = "http://firmhack"
+    address: str = "https://example.com"
     file: str = "example/browser-detect.html"
     headers: dict = {}
 
@@ -100,6 +101,7 @@ def dict_to_obj_config(dict_config: dict) -> Config:
     proxy_config = ProxyConfig()
     proxy_config.logfile = dict_config["proxy"]["logfile"]
     proxy_config.burp = dict_config["proxy"]["burp"]
+    proxy_config.hosts = dict_config["proxy"]["hosts"]
 
     addresses_config: list[AddressConfig] = []
     for address in dict_config["addresses"]:
@@ -161,7 +163,7 @@ def main() -> None:
     if not config.proxy.burp:
         logger.info("Starting mitmdump...")
         mitmdump = subprocess.Popen(
-            [config.general.mitmdumpcmd, "-s", "proxy.py", "-p", "1337"])
+            [config.general.mitmdumpcmd, "-s", "proxy.py", "-p", "1337", "--ignore-hosts", config.proxy.hosts])
     reset_console()
     logger.info("Setting things up before starting the AP...")
     subprocess.Popen(["sudo", "killall", "dnsmasq"]).wait()

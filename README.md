@@ -37,10 +37,12 @@ Proxy settings.
 The name of the file to log intercepted request paths to. Unused if `burp` is set to `true`.
 ### `burp`
 If you're using Burp Suite as a proxy, set this to the proxy port (`8080` by default iirc). This should also work with other custom proxies. If you're using the firmhack proxy, leave this set to `0`.
+### `hosts`
+Ignored hosts regex, like `^(?!example\\.com:)`. See mitmproxy's [`--ignore-hosts`](https://docs.mitmproxy.org/stable/howto-ignoredomains/) option.
 ## `addresses`
 A set of adresses settings. (JSON array, see `firmhack.example.json`)
 ### `address`
-The address to intercept.
+The URL address to intercept.
 ### `file`
 The path of the file to serve.
 ### `headers`

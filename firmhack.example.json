@@ -17,14 +17,15 @@
         "password": "mypasswd"
     },
     "proxy": {
-        "__comment": "logfile = file to log requests to : none | path; burp = use Burp Suite as proxy : 0 for no | proxy port",
+        "__comment": "logfile = file to log requests to : none | path; burp = use Burp Suite as proxy : 0 for no | proxy port; hosts = hosts to allow : hosts regex",
         "logfile": "proxy.log",
-        "burp": 0
+        "burp": 0,
+        "hosts": "^(?!example\\.com:)"
     },
     "addresses": [
         {
             "__comment": "address = http(s) address to serve the file for : http[s]://youraddress/yourpath; file = path to file to serve : path; headers = the headers object : object with headers",
-            "address": "http://example.com",
+            "address": "https://example.com",
             "file": "example/browser-detect.html",
             "headers": {
                 "Content-Type": "text/html"
