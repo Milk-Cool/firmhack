@@ -156,10 +156,12 @@ def main() -> None:
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "off"])
         reset_console()
     mitmdump = None
+    mitmfile = None
     if not config.proxy.burp:
         logger.info("Starting mitmdump...")
+        mitmfile = open(config.proxy.logfile, "w")
         mitmdump = subprocess.Popen(
-            [config.general.mitmdumpcmd, "-s", "proxy.py", "-p", "1337", "--ignore-hosts", config.proxy.hosts])
+            [config.general.mitmdumpcmd, "-s", "proxy.py", "-p", "1337", "--ignore-hosts", config.proxy.hosts], stdout=mitmfile, stderr=mitmfile)
     reset_console()
     logger.info("Setting things up before starting the AP...")
     subprocess.Popen(["sudo", "killall", "dnsmasq"]).wait()
@@ -193,6 +195,8 @@ def main() -> None:
     dnsmasq.terminate()
     if mitmdump is not None:
         mitmdump.terminate()
+    if mitmfile is not None:
+        mitmfile.close()
     if config.general.nm:
         logger.info("hostapd-mana has stopped. Enabling NetworkManager...")
         subprocess.run(["sudo", "nmcli", "radio", "wifi", "on"])
