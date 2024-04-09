@@ -1,3 +1,8 @@
+# What is this?
+
+The problem: some devices (though not many at all now) either use http for checking/downloading updates, or do not verify certificates when using https.\
+The exploit: this. This creates a WiFi network with an http[s] proxy that can be used to replace update files.
+
 # Requirements
 
 [`hostapd-mana`](https://github.com/sensepost/hostapd-mana), [Python 3](https://www.python.org/), [dnsmasq](https://wiki.debian.org/dnsmasq), `requirements.txt` packages
