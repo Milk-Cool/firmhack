@@ -14,6 +14,10 @@ proxy.log
 files/*
 !files/.gitkeep
 
+# Custom binaries
+bin/*
+!bin/.gitkeep
+
 # Temporary hostapd-mana config files
 hostapd.conf
 firmhack.eap_user
